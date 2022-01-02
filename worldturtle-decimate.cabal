@@ -1,0 +1,22 @@
+cabal-version:       3.0
+name:                worldturtle-decimate
+version:             0.1.0.0
+-- synopsis:
+-- description:
+homepage:            https://github.com/aneilmac/worldturtle-decimate#readme
+license:             BSD-3-Clause
+author:              Archibald Neil MacDonald
+maintainer:          anmacdonald@gmail.com
+copyright:           2021 Archibald Neil MacDonald
+category:            Web
+build-type:          Simple
+
+executable worldturtle-decimate
+  hs-source-dirs:      src
+  main-is:             Main.hs
+  default-language:    Haskell2010
+  other-modules: CircleList
+               , CircleListDraw
+  build-depends: base >= 4.13 && < 5
+               , gloss
+               , worldturtle >= 0.2 && < 0.3

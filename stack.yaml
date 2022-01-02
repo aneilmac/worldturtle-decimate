@@ -1,0 +1,5 @@
+
+resolver: lts-17.2
+
+extra-deps:
+  - worldturtle-0.2.2.0@sha256:28a4deab9d5d507db9475ddeab95e5a57937679b291fc156f66be90ed68e15d5,2332
