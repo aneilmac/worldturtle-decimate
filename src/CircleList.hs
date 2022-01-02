@@ -51,41 +51,30 @@ remove (CL [] x []) = CL [] x []
 remove (CL left x []) = let (y:ys) = reverse left in CL [] y ys
 remove (CL left x (y:right)) = CL left y right
 
--- Remove the nth item.
-removeNthM :: Monad m 
-           => (CircleList a -> m (CircleList a)) 
-           -> Int 
-           -> CircleList a 
-           -> m (CircleList a)
-removeNthM f 1 cl = f cl >>= return . remove
-removeNthM f n cl = f cl >>= removeNthM f (n - 1) . next
+-- Remove the nth item. Returns all computations.
+removeNthScan :: Int -> CircleList a -> [CircleList a]
+removeNthScan 1 cl = [cl, remove cl]
+removeNthScan n cl = cl : removeNthScan (n - 1) (next cl)
 
--- Iterate a function until the predicate is true, has a side effect monad `f`
--- applied to each step.
-iterateUntilM :: Monad m
-              => (CircleList a -> m (CircleList a))
-              -> (CircleList a -> Bool) 
-              -> CircleList a 
-              -> m (CircleList a)
-iterateUntilM f p x = if p x then return x else f x >>= iterateUntilM f p
+-- Iterate a function until the predicate is true, returning all computations.
+iterateUntilScan :: (CircleList a -> [CircleList a])
+                 -> (CircleList a -> Bool)
+                 -> CircleList a 
+                 -> [CircleList a]
+iterateUntilScan f p x = 
+    if p x then [x] else let xs = f x 
+                          in init xs ++ iterateUntilScan f p (last xs)
 
 -- Let Roman Centurion Carnage Maximus loose. If we have prisoners
 -- 1, 2, 3, 4, 5 and nth killed prisoner is 3, then prisoner 3 is killed leaving
 -- 1, 2,    4, 5. 
 -- This continues until there is only one prisoner remaining.
-romanHistoryM :: Monad m 
-              => (CircleList Int -> m (CircleList Int)) -- ^ Side effect applied to each step.
-              -> Int -- ^  Number of prisoners (must be 1 or greater).
-              -> Int -- ^ Nth prisoner to kill.
-              -> m (CircleList Int) -- ^ CircleList containing the single remaining prisoner.
-romanHistoryM f numPrisoners nthKilled = 
+romanHistory :: Int -- ^  Number of prisoners (must be 1 or greater).
+             -> Int -- ^ Nth prisoner to kill.
+             -> [CircleList Int] -- ^ CircleList containing the history of kills.
+romanHistory numPrisoners nthKilled = 
     let prisoners = mkCircleList (1, [2..numPrisoners])
-     in iterateUntilM (removeNthM f nthKilled) isSingleton prisoners >>= f
-
--- Variant of romanHistoryM which has no side effects and is effectively a pure 
--- function.
-romanHistory :: Int -> Int -> CircleList Int
-romanHistory p k = runIdentity $ romanHistoryM return p k
+     in iterateUntilScan (removeNthScan nthKilled) isSingleton prisoners
 
 -- The first argument is the number of prisoners (must be 1 or greater).
 -- The second argument which nth prisoner is killed, i.e. if we have prisoners
@@ -93,4 +82,4 @@ romanHistory p k = runIdentity $ romanHistoryM return p k
 -- 1, 2,    4, 5.
 -- The result is the single remaining prisoner.
 chosenPrisoner :: Int -> Int -> Int
-chosenPrisoner numPrisoners = current . romanHistory numPrisoners
+chosenPrisoner numPrisoners = current . last . romanHistory numPrisoners

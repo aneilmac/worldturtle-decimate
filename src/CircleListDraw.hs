@@ -70,8 +70,8 @@ drawEdges side_length angle n = branch $ do
 
 -- Draws each CircleList in sequence, letting each CircleList be rendered for 
 -- 1 second before moving onto the subsequent CircleList.
-animatePrisoners :: Int -> Int -> WorldCommand ()
-animatePrisoners p k = do
+animatePrisoners :: [CircleList Int] -> WorldCommand ()
+animatePrisoners cls = do
   t <- makeTurtle
   t >/> do
     setVisible False
@@ -79,12 +79,7 @@ animatePrisoners p k = do
     setSpeed 0
     setRotationSpeed 0
     setPenDown False
-  void $ romanHistoryM (drawFrame t) p k
-
--- Side effect executed ever "step" of the romansHistoryM method.
-drawFrame :: Turtle -> CircleList Int -> WorldCommand (CircleList Int)
-drawFrame t cl = do 
+  forM_ cls $ \ cl -> do
     clear 
     t >/> drawCircleList cl
     sleep 1
-    return cl
